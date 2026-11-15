@@ -12,7 +12,6 @@ export type RoomCategory = {
     description: string;
     basePrice: number; // total cents (integer); nightly rate
     maxOccupancy: number;
-    amenities: string[];
     isActive: boolean; // default yes, no only if discontinued ("discontinued" probably means rooms of that category have been renovated or rebranded)
 };
 

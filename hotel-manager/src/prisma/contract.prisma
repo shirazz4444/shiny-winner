@@ -92,7 +92,6 @@ model RoomCategory {
   description  String
   basePrice    Int
   maxOccupancy Int
-  amenities    String[]
   isActive     Boolean  @default(true)
 
   rooms Room[]

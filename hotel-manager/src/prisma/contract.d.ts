@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'da6f4e0ae2f18c7b2a9a33f4edbe0659c4e31d7394f05df27ac266ac56cd3d59'>;
+  StorageHashBase<'4b4a2d32dedb4538121252eb6100462081d1174f39133d397667fc64babbb12f'>;
 export type ExecutionHash =
   ExecutionHashBase<'52afecedc56e75e1621ffd647ce0a6c2a19bd1ab226322d1bb813ad3410282a5'>;
 export type ProfileHash =
@@ -531,7 +531,6 @@ export namespace Models {
       'category' | 'housekeepingTasks' | 'maintenanceRequests' | 'reservations';
   };
   export type public_RoomCategory = {
-    amenities: FieldOutputTypes['public']['RoomCategory']['amenities'];
     basePrice: FieldOutputTypes['public']['RoomCategory']['basePrice'];
     description: FieldOutputTypes['public']['RoomCategory']['description'];
     id: FieldOutputTypes['public']['RoomCategory']['id'];
@@ -1445,12 +1444,6 @@ type ContractBase = Omit<
             };
             readonly RoomCategory: {
               columns: {
-                readonly amenities: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly many: { readonly elementNullable: false };
-                };
                 readonly basePrice: {
                   readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
@@ -2462,11 +2455,6 @@ type ContractBase = Omit<
           };
           readonly RoomCategory: {
             readonly fields: {
-              readonly amenities: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-                readonly many: { readonly elementNullable: false };
-              };
               readonly basePrice: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
@@ -2506,7 +2494,6 @@ type ContractBase = Omit<
               readonly table: 'RoomCategory';
               readonly namespaceId: 'public';
               readonly fields: {
-                readonly amenities: { readonly column: 'amenities' };
                 readonly basePrice: { readonly column: 'basePrice' };
                 readonly description: { readonly column: 'description' };
                 readonly id: { readonly column: 'id' };

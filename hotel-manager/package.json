@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "contract:emit": "prisma contract emit"
+    "contract:emit": "prisma contract emit",
+    "seed": "tsx src/prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/orm-postgres": "^8.0.0-rc.23",
@@ -19,6 +20,7 @@
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.6.0",
     "@prisma/cli-engine": "^0.9.0",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "^20",
@@ -28,6 +30,7 @@
     "eslint-config-next": "16.4.6",
     "prisma": "^8.0.0-rc.33",
     "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

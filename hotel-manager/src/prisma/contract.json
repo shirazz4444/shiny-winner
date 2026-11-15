@@ -1563,16 +1563,6 @@
           },
           "RoomCategory": {
             "fields": {
-              "amenities": {
-                "many": {
-                  "elementNullable": false
-                },
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
               "basePrice": {
                 "nullable": false,
                 "type": {
@@ -1635,9 +1625,6 @@
             },
             "storage": {
               "fields": {
-                "amenities": {
-                  "column": "amenities"
-                },
                 "basePrice": {
                   "column": "basePrice"
                 },
@@ -2867,25 +2854,12 @@
             "RoomCategory": {
               "checks": [
                 {
-                  "expression": "array_position(\"amenities\", NULL) IS NULL",
-                  "name": "RoomCategory_amenities_elem_not_null_8aca8596",
-                  "prefix": "RoomCategory_amenities_elem_not_null"
-                },
-                {
                   "expression": "\"basePrice\" >= 0",
                   "name": "room_category_price_valid_95003786",
                   "prefix": "room_category_price_valid"
                 }
               ],
               "columns": {
-                "amenities": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "many": {
-                    "elementNullable": false
-                  },
-                  "nullable": false
-                },
                 "basePrice": {
                   "codecId": "pg/int4@1",
                   "dataType": "pg/int4",
@@ -3050,7 +3024,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "da6f4e0ae2f18c7b2a9a33f4edbe0659c4e31d7394f05df27ac266ac56cd3d59"
+    "storageHash": "4b4a2d32dedb4538121252eb6100462081d1174f39133d397667fc64babbb12f"
   },
   "execution": {
     "executionHash": "52afecedc56e75e1621ffd647ce0a6c2a19bd1ab226322d1bb813ad3410282a5",
