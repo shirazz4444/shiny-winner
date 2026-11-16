@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
-import { calculateInvoice } from "../lib/calculateInvoice";
+import { TAX_RATE, calculateInvoice } from "../lib/calculateInvoice";
 
 // run this script via `npx tsx src/prisma/seed.ts` or `npm run seed` (requires tsx: `npm install -D tsx`)
 // for automatically seeding the backend database with fresh data (for testing and demo only; not for use during "real" deployments)
@@ -29,7 +29,6 @@ const MAINTENANCE_COUNT = 6; // half (rounded up) are still unresolved, the rest
 const OPEN_TASK_COUNT = 3; // unfinished housekeeping tasks on top of the ones that today's check-outs create
 const HISTORY_DAYS = 90; // how far back finished stays go
 const FUTURE_DAYS = 30; // how far ahead upcoming stays go
-const TAX_RATE = 0.1; // decimal representing a percentage i.e. 0.1 = 10%
 
 // ---------- types ----------
 

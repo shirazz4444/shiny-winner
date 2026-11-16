@@ -1,3 +1,6 @@
+// 10% tax rate
+export const TAX_RATE = 0.1;
+
 // all money values are integer cents (e.g. $10.00 = 1000); taxRate is a decimal fraction (e.g. 0.06)
 type InvoiceInput = {
     roomCharge: number;

@@ -4,8 +4,7 @@ import { NotFoundError } from "@/lib/apiResponse";
 import { assertRole, likePattern } from "@/lib/serviceHelpers";
 import type { Session } from "@/services/authService";
 import type { CreateGuestInput, ListGuestsFilters, UpdateGuestInput } from "@/schemas/guest";
-
-const DAY = 86_400_000;
+import { calendarDays } from "@/lib/dates";
 
 type StatRow = {
     status: string;
@@ -13,10 +12,6 @@ type StatRow = {
     checkOutDate: string | Date;
     invoice: { status: string; total: number; refundAmount: number | null } | null;
 };
-
-function calendarDays(checkIn: string | Date, checkOut: string | Date): number {
-    return Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / DAY);
-}
 
 // totalStays and totalDays count only checked-out reservations, and totalSpent is paid invoices minus any refunds (all in cents)
 function statsOf(reservations: StatRow[]) {
