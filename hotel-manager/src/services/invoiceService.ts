@@ -72,18 +72,24 @@ export async function listInvoices(filters: ListInvoicesFilters, session: Sessio
         .offset((page - 1) * limit)
         .all();
 
-    const items = rows.map((i) => ({
-        id: i.id,
-        reservationId: i.reservationId,
-        guestName: i.reservation.guest.fullName,
-        roomNumber: i.reservation.room?.roomNumber ?? null,
-        status: i.status,
-        total: i.total,
-        paymentMethod: i.paymentMethod,
-        paidAt: i.paidAt,
-        refundedAt: i.refundedAt,
-        refundAmount: i.refundAmount,
-    }));
+    const items = rows.map((i) => {
+        if (!i.reservation) {
+            throw new ConflictError(`Invoice ${i.id} has no associated reservation`);
+        }
+
+        return {
+            id: i.id,
+            reservationId: i.reservationId,
+            guestName: i.reservation.guest.fullName,
+            roomNumber: i.reservation.room?.roomNumber ?? null,
+            status: i.status,
+            total: i.total,
+            paymentMethod: i.paymentMethod,
+            paidAt: i.paidAt,
+            refundedAt: i.refundedAt,
+            refundAmount: i.refundAmount,
+        };
+    });
     return { items, total, page, limit };
 }
 
@@ -98,7 +104,11 @@ export async function getInvoice(invoiceId: string, session: Session) {
         .first();
     if (!invoice) throw new NotFoundError("Invoice not found");
 
-    const { reservation } = invoice;
+    const reservation = invoice.reservation;
+
+    if (!reservation) {
+        throw new ConflictError(`Invoice ${invoiceId} has no associated reservation`);
+    }
     return {
         id: invoice.id,
         status: invoice.status,
