@@ -1,0 +1,347 @@
+import { db } from "@/prisma/db";
+import { BadRequestError } from "@/lib/apiResponse";
+import type { Report } from "@/lib/csv";
+import { addDays, calendarDays, dateOf, eachDay, monthStart, nextMonthStart, today, weekStart } from "@/lib/dates";
+import { netRevenue } from "@/lib/revenue";
+import { assertRole } from "@/lib/serviceHelpers";
+import type { Session } from "@/services/authService";
+import type { ReportFilters, RevenueReportFilters } from "@/schemas/report";
+
+const MAX_RANGE_DAYS = 366;
+
+const startOfDay = (date: string) => new Date(`${date}T00:00:00.000Z`);
+const endOfDay = (date: string) => new Date(`${date}T23:59:59.999Z`);
+const round1 = (n: number) => Math.round(n * 10) / 10;
+
+function resolveRange(filters: { startDate?: string; endDate?: string }) {
+    const end = filters.endDate ?? today();
+    const start = filters.startDate ?? addDays(end, -29);
+    if (start > end) throw new BadRequestError("The start date must be on or before the end date");
+    if (calendarDays(start, end) > MAX_RANGE_DAYS) {
+        throw new BadRequestError(`The date range cannot be longer than ${MAX_RANGE_DAYS} days`);
+    }
+    return { start, end };
+}
+
+function periodKeys(start: string, end: string, period: "daily" | "weekly" | "monthly"): string[] {
+    if (period === "daily") return eachDay(start, end);
+
+    const keys: string[] = [];
+    if (period === "weekly") {
+        for (let d = weekStart(start); d <= end; d = addDays(d, 7)) keys.push(d);
+    } else {
+        for (let d = monthStart(start); d <= end; d = nextMonthStart(d)) keys.push(d.slice(0, 7));
+    }
+    return keys;
+}
+
+export async function getRevenueReport(filters: RevenueReportFilters, session: Session): Promise<Report> {
+    assertRole(session, "ADMIN", "MANAGER");
+    const { start, end } = resolveRange(filters);
+    const { period } = filters;
+
+    const invoices = await db.orm.public.Invoice
+        .where((i) => i.status.in(["PAID", "REFUNDED"]))
+        .where((i) => i.paidAt.gte(startOfDay(start)))
+        .where((i) => i.paidAt.lte(endOfDay(end)))
+        .select("status", "total", "refundAmount", "paidAt")
+        .all();
+
+    const buckets = new Map<string, { invoices: number; gross: number; refunds: number }>();
+    for (const key of periodKeys(start, end, period)) buckets.set(key, { invoices: 0, gross: 0, refunds: 0 });
+
+    for (const i of invoices) {
+        if (!i.paidAt) continue;
+        const day = dateOf(i.paidAt);
+        const key = period === "daily" ? day : period === "weekly" ? weekStart(day) : day.slice(0, 7);
+        const bucket = buckets.get(key);
+        if (!bucket) continue;
+        bucket.invoices += 1;
+        bucket.gross += i.total;
+        bucket.refunds += i.status === "REFUNDED" ? i.refundAmount ?? 0 : 0;
+    }
+
+    const rows = [...buckets.entries()].map(([key, b]) => ({
+        period: key,
+        invoices: b.invoices,
+        gross: b.gross,
+        refunds: b.refunds,
+        net: b.gross - b.refunds,
+    }));
+
+    return {
+        columns: [
+            { key: "period", label: period === "weekly" ? "Week starting" : period === "monthly" ? "Month" : "Date" },
+            { key: "invoices", label: "Invoices" },
+            { key: "gross", label: "Gross revenue (USD)", money: true },
+            { key: "refunds", label: "Refunds (USD)", money: true },
+            { key: "net", label: "Net revenue (USD)", money: true },
+        ],
+        rows,
+        summary: {
+            startDate: start,
+            endDate: end,
+            period,
+            totalInvoices: rows.reduce((sum, r) => sum + r.invoices, 0),
+            grossRevenue: rows.reduce((sum, r) => sum + r.gross, 0),
+            refunds: rows.reduce((sum, r) => sum + r.refunds, 0),
+            netRevenue: rows.reduce((sum, r) => sum + r.net, 0),
+        },
+    };
+}
+
+export async function getOccupancyReport(filters: ReportFilters, session: Session): Promise<Report> {
+    assertRole(session, "ADMIN", "MANAGER");
+    const { start, end } = resolveRange(filters);
+
+    const { total: totalRooms } = await db.orm.public.Room.where({}).aggregate((a) => ({ total: a.count() }));
+
+    const stays = await db.orm.public.Reservation
+        .where((r) => r.status.in(["CHECKED_IN", "CHECKED_OUT"]))
+        .where((r) => r.checkInDate.lte(end))
+        .where((r) => r.checkOutDate.gt(start))
+        .select("checkInDate", "checkOutDate")
+        .all();
+
+    const rows = eachDay(start, end).map((date) => {
+        const occupiedRooms = stays.filter((s) => s.checkInDate <= date && date < s.checkOutDate).length;
+        return {
+            date,
+            occupiedRooms,
+            totalRooms,
+            occupancyRate: totalRooms > 0 ? round1((occupiedRooms / totalRooms) * 100) : 0,
+        };
+    });
+
+    const roomNights = rows.reduce((sum, r) => sum + r.occupiedRooms, 0);
+    return {
+        columns: [
+            { key: "date", label: "Date" },
+            { key: "occupiedRooms", label: "Occupied rooms" },
+            { key: "totalRooms", label: "Total rooms" },
+            { key: "occupancyRate", label: "Occupancy rate (%)" },
+        ],
+        rows,
+        summary: {
+            startDate: start,
+            endDate: end,
+            totalRoomNights: roomNights,
+            averageOccupancyRate: rows.length > 0 && totalRooms > 0 ? round1((roomNights / (rows.length * totalRooms)) * 100) : 0,
+        },
+    };
+}
+
+export async function getCancellationReport(filters: ReportFilters, session: Session): Promise<Report> {
+    assertRole(session, "ADMIN", "MANAGER");
+    const { start, end } = resolveRange(filters);
+
+    const cancelled = await db.orm.public.Reservation
+        .where({ status: "CANCELLED" })
+        .where((r) => r.cancelledAt.gte(startOfDay(start)))
+        .where((r) => r.cancelledAt.lte(endOfDay(end)))
+        .orderBy([(r) => r.cancelledAt.desc(), (r) => r.id.desc()])
+        .include("guest")
+        .include("room")
+        .all();
+
+    const rows = cancelled.map((r) => ({
+        reservationId: r.id,
+        guest: r.guest.fullName,
+        room: r.room?.roomNumber ?? null,
+        checkInDate: r.checkInDate,
+        checkOutDate: r.checkOutDate,
+        nights: Math.max(1, calendarDays(r.checkInDate, r.checkOutDate)),
+        cancelledAt: r.cancelledAt ? r.cancelledAt.toISOString() : null,
+    }));
+
+    return {
+        columns: [
+            { key: "reservationId", label: "Reservation" },
+            { key: "guest", label: "Guest" },
+            { key: "room", label: "Room" },
+            { key: "checkInDate", label: "Check-in" },
+            { key: "checkOutDate", label: "Check-out" },
+            { key: "nights", label: "Nights" },
+            { key: "cancelledAt", label: "Cancelled at" },
+        ],
+        rows,
+        summary: {
+            startDate: start,
+            endDate: end,
+            totalCancelled: rows.length,
+            cancelledNights: rows.reduce((sum, r) => sum + r.nights, 0),
+        },
+    };
+}
+
+export async function getRoomCategoryReport(filters: ReportFilters, session: Session): Promise<Report> {
+    assertRole(session, "ADMIN", "MANAGER");
+    const { start, end } = resolveRange(filters);
+
+    const categories = await db.orm.public.RoomCategory
+        .where({})
+        .orderBy([(c) => c.basePrice.asc(), (c) => c.id.asc()])
+        .all();
+    const rooms = await db.orm.public.Room.select("id", "categoryId").all();
+    const categoryOf = new Map(rooms.map((r) => [r.id, r.categoryId]));
+
+    const bookings = await db.orm.public.Reservation
+        .where((r) => r.status.notIn(["CANCELLED", "NO_SHOW"]))
+        .where((r) => r.checkInDate.gte(start))
+        .where((r) => r.checkInDate.lte(end))
+        .select("roomId", "checkInDate", "checkOutDate")
+        .all();
+
+    const stats = new Map<string, { bookings: number; roomNights: number }>();
+    for (const b of bookings) {
+        const categoryId = b.roomId ? categoryOf.get(b.roomId) : undefined;
+        if (!categoryId) continue;
+        const entry = stats.get(categoryId) ?? { bookings: 0, roomNights: 0 };
+        entry.bookings += 1;
+        entry.roomNights += Math.max(1, calendarDays(b.checkInDate, b.checkOutDate));
+        stats.set(categoryId, entry);
+    }
+
+    const totalBookings = [...stats.values()].reduce((sum, s) => sum + s.bookings, 0);
+    const rows = categories
+        .map((c) => {
+            const s = stats.get(c.id) ?? { bookings: 0, roomNights: 0 };
+            return {
+                category: c.name,
+                bookings: s.bookings,
+                roomNights: s.roomNights,
+                sharePercent: totalBookings > 0 ? round1((s.bookings / totalBookings) * 100) : 0,
+            };
+        })
+        .sort((a, b) => b.bookings - a.bookings || a.category.localeCompare(b.category));
+
+    return {
+        columns: [
+            { key: "category", label: "Room category" },
+            { key: "bookings", label: "Bookings" },
+            { key: "roomNights", label: "Room nights" },
+            { key: "sharePercent", label: "Share of bookings (%)" },
+        ],
+        rows,
+        summary: {
+            startDate: start,
+            endDate: end,
+            totalBookings,
+            mostPopular: totalBookings > 0 ? rows[0].category : null,
+        },
+    };
+}
+
+export async function getGuestReport(filters: ReportFilters, session: Session): Promise<Report> {
+    assertRole(session, "ADMIN", "MANAGER");
+    const { start, end } = resolveRange(filters);
+
+    const { total: guestsOnRecord } = await db.orm.public.Guest.where({}).aggregate((a) => ({ total: a.count() }));
+
+    const stays = await db.orm.public.Reservation
+        .where({ status: "CHECKED_OUT" })
+        .where((r) => r.checkOutDate.gte(start))
+        .where((r) => r.checkOutDate.lte(end))
+        .include("guest")
+        .include("invoice")
+        .all();
+
+    const perGuest = new Map<string, { name: string; stays: number; nights: number; spent: number }>();
+    for (const s of stays) {
+        const entry = perGuest.get(s.guestId) ?? { name: s.guest.fullName, stays: 0, nights: 0, spent: 0 };
+        entry.stays += 1;
+        entry.nights += Math.max(1, calendarDays(s.checkInDate, s.checkOutDate));
+        entry.spent += s.invoice ? netRevenue(s.invoice) : 0;
+        perGuest.set(s.guestId, entry);
+    }
+
+    const rows = [...perGuest.entries()]
+        .map(([guestId, g]) => ({ guestId, guest: g.name, stays: g.stays, nights: g.nights, spent: g.spent }))
+        .sort((a, b) => b.spent - a.spent || a.guest.localeCompare(b.guest));
+
+    const totalStays = rows.reduce((sum, r) => sum + r.stays, 0);
+    const totalNights = rows.reduce((sum, r) => sum + r.nights, 0);
+    return {
+        columns: [
+            { key: "guest", label: "Guest" },
+            { key: "stays", label: "Stays" },
+            { key: "nights", label: "Nights" },
+            { key: "spent", label: "Total spent (USD)", money: true },
+        ],
+        rows,
+        summary: {
+            startDate: start,
+            endDate: end,
+            guestsOnRecord,
+            uniqueGuests: rows.length,
+            totalStays,
+            averageStayNights: totalStays > 0 ? round1(totalNights / totalStays) : 0,
+            repeatGuests: rows.filter((r) => r.stays > 1).length,
+            totalSpent: rows.reduce((sum, r) => sum + r.spent, 0),
+        },
+    };
+}
+
+export async function getStaffTaskReport(filters: ReportFilters, session: Session): Promise<Report> {
+    assertRole(session, "ADMIN", "MANAGER");
+    const { start, end } = resolveRange(filters);
+    const from = startOfDay(start);
+    const to = endOfDay(end);
+
+    const staff = await db.orm.public.Employee
+        .where({ role: "HOUSEKEEPING" })
+        .orderBy([(e) => e.fullName.asc(), (e) => e.id.asc()])
+        .all();
+    const ids = staff.map((e) => e.id);
+    const tasks =
+        ids.length > 0
+            ? await db.orm.public.HousekeepingTask
+                .where((t) => t.assignedToId.in(ids))
+                .select("assignedToId", "status", "startedAt", "completedAt")
+                .all()
+            : [];
+
+    const { total: unassignedOpenTasks } = await db.orm.public.HousekeepingTask
+        .where((t) => t.assignedToId.isNull())
+        .where((t) => t.status.neq("COMPLETED"))
+        .aggregate((a) => ({ total: a.count() }));
+
+    const rows = staff
+        .map((e) => {
+            const mine = tasks.filter((t) => t.assignedToId === e.id);
+            const done = mine.filter(
+                (t) => t.status === "COMPLETED" && t.completedAt && t.completedAt >= from && t.completedAt <= to
+            );
+            const minutes = done.flatMap((t) =>
+                t.startedAt && t.completedAt ? [(t.completedAt.getTime() - t.startedAt.getTime()) / 60_000] : []
+            );
+            return {
+                employeeId: e.id,
+                employee: e.fullName,
+                active: e.isActive ? "Yes" : "No",
+                completed: done.length,
+                averageMinutes: minutes.length > 0 ? Math.round(minutes.reduce((a, b) => a + b, 0) / minutes.length) : null,
+                inProgress: mine.filter((t) => t.status === "IN_PROGRESS").length,
+                pending: mine.filter((t) => t.status === "PENDING").length,
+            };
+        })
+        .sort((a, b) => b.completed - a.completed || a.employee.localeCompare(b.employee));
+
+    return {
+        columns: [
+            { key: "employee", label: "Employee" },
+            { key: "active", label: "Active" },
+            { key: "completed", label: "Tasks completed" },
+            { key: "averageMinutes", label: "Average minutes per task" },
+            { key: "inProgress", label: "In progress now" },
+            { key: "pending", label: "Pending now" },
+        ],
+        rows,
+        summary: {
+            startDate: start,
+            endDate: end,
+            totalCompleted: rows.reduce((sum, r) => sum + r.completed, 0),
+            unassignedOpenTasks,
+        },
+    };
+}
