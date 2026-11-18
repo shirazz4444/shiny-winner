@@ -1,3 +1,5 @@
-export default function Home() {
-  return <div className="content">hi</div>;
+import { redirectToHome } from "@/services/authService";
+
+export default async function HomePage() {
+  await redirectToHome();
 }
