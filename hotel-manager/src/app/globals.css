@@ -21,7 +21,7 @@
   --info: #0369a1;
 
   /*anything that's not a color*/
-  --header-height: 8rem;
+  --header-height: 6rem;
 }
 
 @theme inline {

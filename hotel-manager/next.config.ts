@@ -2,9 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  // these two caused a problem in a previous project i forgot what but you might need to disable them again idk. leaving them here for now anyways
-  cacheComponents: true,
-  partialPrefetching: true,
+  cacheComponents: false,
+  partialPrefetching: false,
   devIndicators: false,
   turbopack: {
     rules: {
