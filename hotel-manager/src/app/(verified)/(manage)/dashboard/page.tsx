@@ -6,6 +6,7 @@ import {
   Hotel,
   LogIn,
   LogOut,
+  ListTodo,
 } from "lucide-react";
 import Card from "@/components/ui/Card";
 import KpiCard from "@/components/ui/KpiCard";
@@ -46,7 +47,16 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
       </div>
 
       <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Total Rooms" value={kpis.totalRooms} icon={Hotel} />
+        <KpiCard
+          label="Pending Reservations"
+          value={kpis.pendingReservations}
+          icon={Clock}
+        />
+        <KpiCard
+          label="Open Tasks"
+          value={kpis.openTasks}
+          icon={ListTodo}
+        />
         <KpiCard
           label="Available Rooms"
           value={kpis.availableRooms}
@@ -57,6 +67,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
           value={kpis.occupiedRooms}
           icon={BedDouble}
         />
+        <KpiCard label="Total Rooms" value={kpis.totalRooms} icon={Hotel} />
         <KpiCard
           label="Today's Check-ins"
           value={kpis.todaysCheckIns}
@@ -71,11 +82,6 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
           label="Total Revenue"
           value={centsToUSD(kpis.totalRevenue)}
           icon={DollarSign}
-        />
-        <KpiCard
-          label="Pending Reservations"
-          value={kpis.pendingReservations}
-          icon={Clock}
         />
       </div>
 

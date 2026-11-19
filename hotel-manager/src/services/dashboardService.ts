@@ -20,6 +20,14 @@ export async function getDashboardKpis(session: Session) {
 
     const rooms = await db.orm.public.Room.select("status").all();
 
+    const openHousekeepingTasks = db.orm.public.HousekeepingTask
+        .where({ status: "PENDING" })
+        .all
+
+    const openMaintenanceRequests = db.orm.public.MaintenanceRequest
+        .where({ status: "OPEN" })
+        .all
+
     const { total: todaysCheckIns } = await db.orm.public.Reservation
         .where({ checkInDate: date })
         .where((r) => r.status.notIn(["CANCELLED", "NO_SHOW"]))
@@ -41,6 +49,7 @@ export async function getDashboardKpis(session: Session) {
 
     return {
         totalRooms: rooms.length,
+        openTasks: openHousekeepingTasks.length + openMaintenanceRequests.length,
         availableRooms: rooms.filter((r) => r.status === "AVAILABLE").length,
         occupiedRooms: rooms.filter((r) => r.status === "OCCUPIED").length,
         todaysCheckIns,
