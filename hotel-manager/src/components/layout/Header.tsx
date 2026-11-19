@@ -15,7 +15,7 @@ const ROLE_LABELS: Record<Role, string> = {
   ADMIN: "Admin",
   MANAGER: "Manager",
   RECEPTIONIST: "Receptionist",
-  HOUSEKEEPING: "Housekeeping Staff",
+  HOUSEKEEPING: "Housekeeper",
 };
 
 export default function Header({ role }: HeaderProps) {
