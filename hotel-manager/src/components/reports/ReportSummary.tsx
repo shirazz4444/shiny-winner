@@ -1,4 +1,4 @@
-import Card from "@/components/ui/Card";
+import KpiCard from "@/components/ui/KpiCard";
 import centsToUSD from "@/lib/centsToUSD";
 import type { SummaryField } from "@/components/reports/reportConfig";
 
@@ -22,12 +22,11 @@ export default function ReportSummary({ fields, summary }: ReportSummaryProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {fields.map((field) => (
-        <Card key={field.key}>
-          <p className="text-sm text-muted-foreground">{field.label}</p>
-          <p className="mt-1 text-2xl font-semibold">
-            {format(summary[field.key], field)}
-          </p>
-        </Card>
+        <KpiCard
+          key={field.key}
+          label={field.label}
+          value={format(summary[field.key], field)}
+        />
       ))}
     </div>
   );
