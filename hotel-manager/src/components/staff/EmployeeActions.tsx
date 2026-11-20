@@ -100,7 +100,7 @@ export default function EmployeeActions({
         </Button>
       )}
       <Button variant="secondary" size="xs" onClick={openReset}>
-        Reset password
+        Reset Password
       </Button>
       {error && (
         <p

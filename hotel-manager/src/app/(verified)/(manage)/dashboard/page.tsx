@@ -87,17 +87,17 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card
-          title={`Monthly revenue (last ${charts.monthlyRevenue.length} months)`}
+          title={`Monthly Revenue (last ${charts.monthlyRevenue.length} months)`}
         >
           <RevenueChart data={charts.monthlyRevenue} />
         </Card>
-        <Card title={`Room occupancy rate (last ${filters.days} days)`}>
+        <Card title={`Room Occupancy Rate (last ${filters.days} days)`}>
           <OccupancyChart data={charts.occupancy} />
         </Card>
-        <Card title="Reservations by room type">
+        <Card title="Reservations by Room Type">
           <RoomTypeChart data={charts.reservationsByRoomType} />
         </Card>
-        <Card title={`Booking trends (check-ins, last ${filters.days} days)`}>
+        <Card title={`Booking Trends (check-ins, last ${filters.days} days)`}>
           <BookingsChart data={charts.bookingTrends} />
         </Card>
       </div>

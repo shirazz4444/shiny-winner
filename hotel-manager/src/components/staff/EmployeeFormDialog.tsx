@@ -115,7 +115,7 @@ export default function EmployeeFormDialog({
       ) : (
         <Button onClick={openDialog}>
           <Plus size={18} aria-hidden="true" />
-          Add employee
+          Add Employee
         </Button>
       )}
 
@@ -126,8 +126,8 @@ export default function EmployeeFormDialog({
           created
             ? "Employee account created"
             : target
-              ? "Edit employee"
-              : "Add employee"
+              ? "Edit Employee"
+              : "Add Employee"
         }
       >
         {created ? (

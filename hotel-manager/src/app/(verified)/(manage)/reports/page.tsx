@@ -145,7 +145,7 @@ export default async function ReportsPage({ searchParams }: ReportsProps) {
           />
 
           <Card
-            title={`${REPORTS[slug].label} report: ${startDate} to ${endDate}`}
+            title={`${REPORTS[slug].label} Report: ${startDate} to ${endDate}`}
           >
             <div className="mb-4 flex justify-end">
               <a
