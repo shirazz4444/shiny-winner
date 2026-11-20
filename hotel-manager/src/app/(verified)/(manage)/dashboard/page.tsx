@@ -9,7 +9,7 @@ import {
   ListTodo,
 } from "lucide-react";
 import Card from "@/components/ui/Card";
-import KpiCard from "@/components/ui/KpiCard";
+import KpiCard from "@/components/dashboard/KpiCard";
 import RangeToggle from "@/components/dashboard/RangeToggle";
 import BookingsChart from "@/components/dashboard/charts/BookingsChart";
 import OccupancyChart from "@/components/dashboard/charts/OccupancyChart";
