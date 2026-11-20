@@ -53,7 +53,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
           icon={Clock}
         />
         <KpiCard
-          label="Open Tasks"
+          label="Open Housekeeping Tasks"
           value={kpis.openTasks}
           icon={ListTodo}
         />
