@@ -1,7 +1,6 @@
-import Link from "next/link";
-import Button, { buttonClass } from "@/components/ui/Button";
 import SelectField from "@/components/ui/fields/SelectField";
 import TextField from "@/components/ui/fields/TextField";
+import SearchFilterForm from "@/components/ui/SearchFilterForm";
 import { ROLES, ROLE_LABELS } from "@/lib/roleLabels";
 
 type StaffFiltersProps = {
@@ -18,11 +17,10 @@ export default function StaffFilters({
   isAvailable,
 }: StaffFiltersProps) {
   return (
-    <form
-      key={`${search}-${role}-${isActive}-${isAvailable}`}
+    <SearchFilterForm
       action="/staff"
-      method="get"
-      className="flex flex-wrap items-end gap-4"
+      formKey={`${search}-${role}-${isActive}-${isAvailable}`}
+      clearHref="/staff"
     >
       <TextField
         id="search"
@@ -31,6 +29,7 @@ export default function StaffFilters({
         placeholder="Name or email"
         defaultValue={search}
       />
+
       <SelectField id="role" name="role" label="Role" defaultValue={role}>
         <option value="">All roles</option>
         {ROLES.map((r) => (
@@ -39,6 +38,7 @@ export default function StaffFilters({
           </option>
         ))}
       </SelectField>
+
       <SelectField
         id="isActive"
         name="isActive"
@@ -49,6 +49,7 @@ export default function StaffFilters({
         <option value="true">Active</option>
         <option value="false">Inactive</option>
       </SelectField>
+
       <SelectField
         id="isAvailable"
         name="isAvailable"
@@ -59,10 +60,6 @@ export default function StaffFilters({
         <option value="true">Available</option>
         <option value="false">Unavailable</option>
       </SelectField>
-      <Button type="submit">Apply</Button>
-      <Link href="/staff" className={buttonClass("secondary")}>
-        Clear
-      </Link>
-    </form>
+    </SearchFilterForm>
   );
 }

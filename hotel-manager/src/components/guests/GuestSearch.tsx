@@ -1,14 +1,13 @@
-import Link from "next/link";
-import Button, { buttonClass } from "@/components/ui/Button";
 import TextField from "@/components/ui/fields/TextField";
+import SearchFilterForm from "@/components/ui/SearchFilterForm";
 
 export default function GuestSearch({ search }: { search: string }) {
   return (
-    <form
-      key={search}
+    <SearchFilterForm
       action="/guests"
-      method="get"
-      className="flex flex-wrap items-end gap-4"
+      formKey={search}
+      submitLabel="Search"
+      clearHref="/guests"
     >
       <TextField
         id="search"
@@ -17,10 +16,6 @@ export default function GuestSearch({ search }: { search: string }) {
         placeholder="Name, email, or phone"
         defaultValue={search}
       />
-      <Button type="submit">Search</Button>
-      <Link href="/guests" className={buttonClass("secondary")}>
-        Clear
-      </Link>
-    </form>
+    </SearchFilterForm>
   );
 }

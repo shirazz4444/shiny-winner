@@ -1,7 +1,6 @@
-import Link from "next/link";
-import Button, { buttonClass } from "@/components/ui/Button";
 import SelectField from "@/components/ui/fields/SelectField";
 import TextField from "@/components/ui/fields/TextField";
+import SearchFilterForm from "@/components/ui/SearchFilterForm";
 import type { CategoryOption } from "@/components/rooms/types";
 
 const STATUSES = [
@@ -28,11 +27,10 @@ export default function RoomFilters({
   categories,
 }: RoomFiltersProps) {
   return (
-    <form
-      key={`${search}-${categoryId}-${status}`}
+    <SearchFilterForm
       action="/rooms"
-      method="get"
-      className="flex flex-wrap items-end gap-4"
+      formKey={`${search}-${categoryId}-${status}`}
+      clearHref="/rooms"
     >
       <TextField
         id="search"
@@ -41,6 +39,7 @@ export default function RoomFilters({
         placeholder="e.g. 204"
         defaultValue={search}
       />
+
       {categories.length > 0 && (
         <SelectField
           id="categoryId"
@@ -57,6 +56,7 @@ export default function RoomFilters({
           ))}
         </SelectField>
       )}
+
       <SelectField
         id="status"
         name="status"
@@ -70,10 +70,6 @@ export default function RoomFilters({
           </option>
         ))}
       </SelectField>
-      <Button type="submit">Apply</Button>
-      <Link href="/rooms" className={buttonClass("secondary")}>
-        Clear
-      </Link>
-    </form>
+    </SearchFilterForm>
   );
 }

@@ -1,6 +1,6 @@
-import Button from "@/components/ui/Button";
 import SelectField from "@/components/ui/fields/SelectField";
 import TextField from "@/components/ui/fields/TextField";
+import SearchFilterForm from "@/components/ui/SearchFilterForm";
 import type { ReportSlug } from "@/components/reports/reportConfig";
 
 type ReportFiltersProps = {
@@ -17,11 +17,9 @@ export default function ReportFilters({
   period,
 }: ReportFiltersProps) {
   return (
-    <form
-      key={`${slug}-${startDate}-${endDate}-${period}`}
+    <SearchFilterForm
       action="/reports"
-      method="get"
-      className="flex flex-wrap items-end gap-4"
+      formKey={`${slug}-${startDate}-${endDate}-${period}`}
     >
       <input type="hidden" name="report" value={slug} />
 
@@ -33,6 +31,7 @@ export default function ReportFilters({
         defaultValue={startDate}
         required
       />
+
       <TextField
         id="endDate"
         name="endDate"
@@ -54,8 +53,6 @@ export default function ReportFilters({
           <option value="monthly">Month</option>
         </SelectField>
       )}
-
-      <Button type="submit">Apply</Button>
-    </form>
+    </SearchFilterForm>
   );
 }
