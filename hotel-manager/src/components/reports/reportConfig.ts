@@ -9,49 +9,46 @@ export const REPORTS = {
     revenue: {
         label: "Revenue",
         summary: [
-            { key: "totalInvoices", label: "Invoices" },
-            { key: "grossRevenue", label: "Gross revenue", money: true },
+            { key: "totalInvoices", label: "Invoices Processed" },
+            { key: "grossRevenue", label: "Gross Revenue", money: true },
             { key: "refunds", label: "Refunds", money: true },
-            { key: "netRevenue", label: "Net revenue", money: true },
+            { key: "netRevenue", label: "Net Revenue", money: true },
         ] as SummaryField[],
     },
     occupancy: {
         label: "Occupancy",
         summary: [
-            { key: "totalRoomNights", label: "Room nights" },
-            { key: "averageOccupancyRate", label: "Average occupancy", percent: true },
+            { key: "totalRoomNights", label: "Room Nights" },
+            { key: "averageOccupancyRate", label: "Average Occupancy Rate", percent: true },
         ] as SummaryField[],
     },
     cancellations: {
         label: "Cancellations",
         summary: [
-            { key: "totalCancelled", label: "Cancellations" },
-            { key: "cancelledNights", label: "Nights lost" },
+            { key: "totalCancelled", label: "Cancelled Reservations" },
         ] as SummaryField[],
     },
     "room-categories": {
-        label: "Room categories",
+        label: "Room Categories",
         summary: [
             { key: "totalBookings", label: "Bookings" },
-            { key: "mostPopular", label: "Most popular" },
+            { key: "mostPopular", label: "Most Popular" },
         ] as SummaryField[],
     },
     guests: {
         label: "Guests",
         summary: [
-            { key: "guestsOnRecord", label: "Guests on record" },
-            { key: "uniqueGuests", label: "Guests with a stay" },
+            { key: "uniqueGuests", label: "Unique Guests" },
+            { key: "repeatGuests", label: "Repeat Guests" },
             { key: "totalStays", label: "Stays" },
-            { key: "averageStayNights", label: "Average stay (nights)" },
-            { key: "repeatGuests", label: "Repeat guests" },
-            { key: "totalSpent", label: "Total spent", money: true },
+            { key: "averageStayNights", label: "Average Stay (Nights)" },
+            { key: "totalSpent", label: "Total Guest Spending", money: true },
         ] as SummaryField[],
     },
     "staff-tasks": {
-        label: "Staff tasks",
+        label: "Staff Tasks",
         summary: [
-            { key: "totalCompleted", label: "Tasks completed" },
-            { key: "unassignedOpenTasks", label: "Unassigned open tasks" },
+            { key: "totalCompleted", label: "Tasks Completed" },
         ] as SummaryField[],
     },
 };

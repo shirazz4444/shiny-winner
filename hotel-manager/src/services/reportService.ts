@@ -72,10 +72,10 @@ export async function getRevenueReport(filters: RevenueReportFilters, session: S
     return {
         columns: [
             { key: "period", label: period === "weekly" ? "Week starting" : period === "monthly" ? "Month" : "Date" },
-            { key: "invoices", label: "Invoices" },
-            { key: "gross", label: "Gross revenue (USD)", money: true },
-            { key: "refunds", label: "Refunds (USD)", money: true },
-            { key: "net", label: "Net revenue (USD)", money: true },
+            { key: "invoices", label: "Invoices Processed" },
+            { key: "gross", label: "Gross Revenue", money: true },
+            { key: "refunds", label: "Refunds", money: true },
+            { key: "net", label: "Net Revenue", money: true },
         ],
         rows,
         summary: {
@@ -117,9 +117,9 @@ export async function getOccupancyReport(filters: ReportFilters, session: Sessio
     return {
         columns: [
             { key: "date", label: "Date" },
-            { key: "occupiedRooms", label: "Occupied rooms" },
-            { key: "totalRooms", label: "Total rooms" },
-            { key: "occupancyRate", label: "Occupancy rate (%)" },
+            { key: "occupiedRooms", label: "Occupied Rooms" },
+            { key: "totalRooms", label: "Total Rooms" },
+            { key: "occupancyRate", label: "Occupancy Rate (%)" },
         ],
         rows,
         summary: {
@@ -150,18 +150,16 @@ export async function getCancellationReport(filters: ReportFilters, session: Ses
         room: r.room?.roomNumber ?? null,
         checkInDate: r.checkInDate,
         checkOutDate: r.checkOutDate,
-        nights: Math.max(1, calendarDays(r.checkInDate, r.checkOutDate)),
         cancelledAt: r.cancelledAt ? r.cancelledAt.toISOString() : null,
     }));
 
     return {
         columns: [
-            { key: "reservationId", label: "Reservation" },
+            { key: "reservationId", label: "Reservation ID" },
             { key: "guest", label: "Guest" },
             { key: "room", label: "Room" },
-            { key: "checkInDate", label: "Check-in" },
-            { key: "checkOutDate", label: "Check-out" },
-            { key: "nights", label: "Nights" },
+            { key: "checkInDate", label: "Scheduled Check-in" },
+            { key: "checkOutDate", label: "Scheduled Check-out" },
             { key: "cancelledAt", label: "Cancelled at" },
         ],
         rows,
@@ -169,7 +167,6 @@ export async function getCancellationReport(filters: ReportFilters, session: Ses
             startDate: start,
             endDate: end,
             totalCancelled: rows.length,
-            cancelledNights: rows.reduce((sum, r) => sum + r.nights, 0),
         },
     };
 }
@@ -217,10 +214,10 @@ export async function getRoomCategoryReport(filters: ReportFilters, session: Ses
 
     return {
         columns: [
-            { key: "category", label: "Room category" },
+            { key: "category", label: "Room Category" },
             { key: "bookings", label: "Bookings" },
-            { key: "roomNights", label: "Room nights" },
-            { key: "sharePercent", label: "Share of bookings (%)" },
+            { key: "roomNights", label: "Room Nights" },
+            { key: "sharePercent", label: "Share of Bookings (%)" },
         ],
         rows,
         summary: {
@@ -236,47 +233,73 @@ export async function getGuestReport(filters: ReportFilters, session: Session): 
     assertRole(session, "ADMIN", "MANAGER");
     const { start, end } = resolveRange(filters);
 
-    const { total: guestsOnRecord } = await db.orm.public.Guest.where({}).aggregate((a) => ({ total: a.count() }));
-
     const stays = await db.orm.public.Reservation
-        .where({ status: "CHECKED_OUT" })
-        .where((r) => r.checkOutDate.gte(start))
-        .where((r) => r.checkOutDate.lte(end))
+        .where((r) => r.status.in(["CHECKED_IN", "CHECKED_OUT"]))
+        .where((r) => r.checkInDate.lte(end))
+        .where((r) => r.checkOutDate.gt(start))
         .include("guest")
         .include("invoice")
         .all();
 
+    const guestIds = [...new Set(stays.map((s) => s.guestId))];
+
+    // Find guests who had a stay before the selected period.
+    const previousStays = guestIds.length > 0
+        ? await db.orm.public.Reservation
+            .where((r) => r.guestId.in(guestIds))
+            .where((r) => r.status.in(["CHECKED_IN", "CHECKED_OUT"]))
+            .where((r) => r.checkOutDate.lte(start))
+            .select("guestId")
+            .all()
+        : [];
+
+    const repeatGuestIds = new Set(previousStays.map((s) => s.guestId));
+
     const perGuest = new Map<string, { name: string; stays: number; nights: number; spent: number }>();
+
     for (const s of stays) {
-        const entry = perGuest.get(s.guestId) ?? { name: s.guest.fullName, stays: 0, nights: 0, spent: 0 };
+        const entry = perGuest.get(s.guestId) ?? {
+            name: s.guest.fullName,
+            stays: 0,
+            nights: 0,
+            spent: 0,
+        };
+
         entry.stays += 1;
         entry.nights += Math.max(1, calendarDays(s.checkInDate, s.checkOutDate));
         entry.spent += s.invoice ? netRevenue(s.invoice) : 0;
+
         perGuest.set(s.guestId, entry);
     }
 
     const rows = [...perGuest.entries()]
-        .map(([guestId, g]) => ({ guestId, guest: g.name, stays: g.stays, nights: g.nights, spent: g.spent }))
+        .map(([guestId, g]) => ({
+            guestId,
+            guest: g.name,
+            stays: g.stays,
+            nights: g.nights,
+            spent: g.spent,
+        }))
         .sort((a, b) => b.spent - a.spent || a.guest.localeCompare(b.guest));
 
     const totalStays = rows.reduce((sum, r) => sum + r.stays, 0);
     const totalNights = rows.reduce((sum, r) => sum + r.nights, 0);
+
     return {
         columns: [
             { key: "guest", label: "Guest" },
             { key: "stays", label: "Stays" },
             { key: "nights", label: "Nights" },
-            { key: "spent", label: "Total spent (USD)", money: true },
+            { key: "spent", label: "Total Spent", money: true },
         ],
         rows,
         summary: {
             startDate: start,
             endDate: end,
-            guestsOnRecord,
             uniqueGuests: rows.length,
             totalStays,
             averageStayNights: totalStays > 0 ? round1(totalNights / totalStays) : 0,
-            repeatGuests: rows.filter((r) => r.stays > 1).length,
+            repeatGuests: rows.filter((r) => repeatGuestIds.has(r.guestId)).length,
             totalSpent: rows.reduce((sum, r) => sum + r.spent, 0),
         },
     };
@@ -301,11 +324,6 @@ export async function getStaffTaskReport(filters: ReportFilters, session: Sessio
                 .all()
             : [];
 
-    const { total: unassignedOpenTasks } = await db.orm.public.HousekeepingTask
-        .where((t) => t.assignedToId.isNull())
-        .where((t) => t.status.neq("COMPLETED"))
-        .aggregate((a) => ({ total: a.count() }));
-
     const rows = staff
         .map((e) => {
             const mine = tasks.filter((t) => t.assignedToId === e.id);
@@ -321,8 +339,6 @@ export async function getStaffTaskReport(filters: ReportFilters, session: Sessio
                 active: e.isActive ? "Yes" : "No",
                 completed: done.length,
                 averageMinutes: minutes.length > 0 ? Math.round(minutes.reduce((a, b) => a + b, 0) / minutes.length) : null,
-                inProgress: mine.filter((t) => t.status === "IN_PROGRESS").length,
-                pending: mine.filter((t) => t.status === "PENDING").length,
             };
         })
         .sort((a, b) => b.completed - a.completed || a.employee.localeCompare(b.employee));
@@ -331,17 +347,14 @@ export async function getStaffTaskReport(filters: ReportFilters, session: Sessio
         columns: [
             { key: "employee", label: "Employee" },
             { key: "active", label: "Active" },
-            { key: "completed", label: "Tasks completed" },
+            { key: "completed", label: "Tasks Completed" },
             { key: "averageMinutes", label: "Average minutes per task" },
-            { key: "inProgress", label: "In progress now" },
-            { key: "pending", label: "Pending now" },
         ],
         rows,
         summary: {
             startDate: start,
             endDate: end,
             totalCompleted: rows.reduce((sum, r) => sum + r.completed, 0),
-            unassignedOpenTasks,
         },
     };
 }

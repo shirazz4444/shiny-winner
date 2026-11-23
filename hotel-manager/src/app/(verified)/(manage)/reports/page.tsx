@@ -139,10 +139,15 @@ export default async function ReportsPage({ searchParams }: ReportsProps) {
 
       {report && (
         <>
-          <ReportSummary
-            fields={REPORTS[slug].summary}
-            summary={report.summary}
-          />
+          <div>
+            <div className={`pb-2 text-xl font-bold`}>
+              Summary Metrics (specified date range only)
+            </div>
+            <ReportSummary
+              fields={REPORTS[slug].summary}
+              summary={report.summary}
+            />
+          </div>
 
           <Card
             title={`${REPORTS[slug].label} Report: ${startDate} to ${endDate}`}
