@@ -105,7 +105,7 @@ export default function TaskFormDialog({
           }}
         >
           <Plus size={18} aria-hidden="true" />
-          New task
+          New Task
         </Button>
       )}
 
@@ -167,7 +167,7 @@ export default function TaskFormDialog({
 
           <div className="flex gap-3">
             <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : target ? "Save changes" : "Create task"}
+              {loading ? "Saving..." : target ? "Save Changes" : "Create Task"}
             </Button>
             <Button variant="secondary" onClick={() => setOpen(false)}>
               Cancel

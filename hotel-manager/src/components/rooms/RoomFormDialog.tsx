@@ -105,14 +105,14 @@ export default function RoomFormDialog({ mode, room, categories }: Props) {
       ) : (
         <Button onClick={openDialog}>
           <Plus size={18} aria-hidden="true" />
-          Add room
+          Add Room
         </Button>
       )}
 
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
-        title={target ? `Edit room ${target.roomNumber}` : "Add room"}
+        title={target ? `Edit Room ${target.roomNumber}` : "Add Room"}
       >
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
           {error && <Alert>{error}</Alert>}
@@ -120,7 +120,7 @@ export default function RoomFormDialog({ mode, room, categories }: Props) {
           <TextField
             id="roomNumber"
             name="roomNumber"
-            label="Room number"
+            label="Room Number"
             autoComplete="off"
             defaultValue={target?.roomNumber}
             error={first("roomNumber")}
@@ -144,7 +144,7 @@ export default function RoomFormDialog({ mode, room, categories }: Props) {
             type="number"
             step="0.01"
             min={0}
-            label="Nightly price (USD)"
+            label="Nightly Price"
             hint={
               target ? undefined : "Leave empty to use the category's default."
             }
@@ -156,7 +156,7 @@ export default function RoomFormDialog({ mode, room, categories }: Props) {
             name="maxOccupancy"
             type="number"
             min={1}
-            label="Maximum occupancy"
+            label="Maximum Occupancy"
             hint={
               target ? undefined : "Leave empty to use the category's default."
             }
@@ -166,7 +166,7 @@ export default function RoomFormDialog({ mode, room, categories }: Props) {
 
           <div className="flex gap-3">
             <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : target ? "Save changes" : "Create room"}
+              {loading ? "Saving..." : target ? "Save Changes" : "Create Room"}
             </Button>
             <Button variant="secondary" onClick={() => setOpen(false)}>
               Cancel

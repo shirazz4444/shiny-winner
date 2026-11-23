@@ -26,7 +26,7 @@ export default function StaffFilters({
         id="search"
         name="search"
         label="Search"
-        placeholder="Name or email"
+        placeholder="Name or Email"
         defaultValue={search}
       />
 

@@ -89,7 +89,7 @@ export default async function RoomsPage({ searchParams }: RoomsProps) {
       wrap: false,
       render: (r) => centsToUSD(r.price),
     },
-    { key: "maxOccupancy", label: "Max guests", align: "right" },
+    { key: "maxOccupancy", label: "Max Guests", align: "right" },
     {
       key: "status",
       label: "Status",

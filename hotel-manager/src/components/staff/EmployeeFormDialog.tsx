@@ -147,7 +147,7 @@ export default function EmployeeFormDialog({
             <TextField
               id="fullName"
               name="fullName"
-              label="Full name"
+              label="Full Name"
               autoComplete="off"
               defaultValue={target?.fullName}
               error={first("fullName")}
@@ -205,8 +205,8 @@ export default function EmployeeFormDialog({
                     ? "Saving..."
                     : "Creating..."
                   : target
-                    ? "Save changes"
-                    : "Create employee"}
+                    ? "Save Changes"
+                    : "Create Employee"}
               </Button>
               <Button variant="secondary" onClick={handleClose}>
                 Cancel

@@ -50,7 +50,7 @@ export default async function GuestsPage({ searchParams }: GuestsProps) {
     { key: "totalDays", label: "Nights", align: "right" },
     {
       key: "totalSpent",
-      label: "Total spent",
+      label: "Total Spent",
       align: "right",
       wrap: false,
       render: (g) => centsToUSD(g.totalSpent),

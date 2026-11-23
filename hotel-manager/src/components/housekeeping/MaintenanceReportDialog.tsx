@@ -65,7 +65,7 @@ export default function MaintenanceReportDialog({
         }}
       >
         <Plus size={18} aria-hidden="true" />
-        Report an issue
+        Report an Issue
       </Button>
 
       <Dialog
@@ -96,7 +96,7 @@ export default function MaintenanceReportDialog({
           />
           <div className="flex gap-3">
             <Button type="submit" disabled={loading}>
-              {loading ? "Reporting..." : "Report issue"}
+              {loading ? "Reporting..." : "Report Issue"}
             </Button>
             <Button variant="secondary" onClick={() => setOpen(false)}>
               Cancel

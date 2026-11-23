@@ -68,7 +68,7 @@ export default async function GuestProfilePage({ params }: GuestProfileProps) {
         className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
       >
         <ArrowLeft size={16} aria-hidden="true" />
-        All guests
+        All Guests
       </Link>
 
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -85,7 +85,7 @@ export default async function GuestProfilePage({ params }: GuestProfileProps) {
         />
       </div>
 
-      <Card title="Contact details">
+      <Card title="Contact Details">
         <dl className="grid gap-2 sm:grid-cols-[8rem_1fr]">
           <dt className="text-muted-foreground">Email</dt>
           <dd className="break-all">{guest.email}</dd>
@@ -110,7 +110,7 @@ export default async function GuestProfilePage({ params }: GuestProfileProps) {
         />
       </div>
 
-      <Card title="Stay history">
+      <Card title="Stay History">
         <DataTable
           caption={`Reservations for ${guest.fullName}`}
           columns={columns}

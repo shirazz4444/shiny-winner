@@ -102,7 +102,7 @@ export default function GuestFormDialog({ mode, guest }: Props) {
           <TextField
             id="fullName"
             name="fullName"
-            label="Full name"
+            label="Full Name"
             autoComplete="off"
             defaultValue={target?.fullName}
             error={first("fullName")}
@@ -141,8 +141,8 @@ export default function GuestFormDialog({ mode, guest }: Props) {
                   ? "Saving..."
                   : "Creating..."
                 : target
-                  ? "Save changes"
-                  : "Create guest"}
+                  ? "Save Changes"
+                  : "Create Guest"}
             </Button>
             <Button variant="secondary" onClick={() => setOpen(false)}>
               Cancel

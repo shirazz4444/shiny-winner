@@ -35,7 +35,7 @@ export default function RoomFilters({
       <TextField
         id="search"
         name="search"
-        label="Room number"
+        label="Room Number"
         placeholder="e.g. 204"
         defaultValue={search}
       />
