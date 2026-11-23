@@ -243,7 +243,6 @@ export async function getGuestReport(filters: ReportFilters, session: Session): 
 
     const guestIds = [...new Set(stays.map((s) => s.guestId))];
 
-    // Find guests who had a stay before the selected period.
     const previousStays = guestIds.length > 0
         ? await db.orm.public.Reservation
             .where((r) => r.guestId.in(guestIds))
@@ -278,9 +277,14 @@ export async function getGuestReport(filters: ReportFilters, session: Session): 
             guest: g.name,
             stays: g.stays,
             nights: g.nights,
+            averageNights: round1(g.nights / g.stays),
             spent: g.spent,
         }))
-        .sort((a, b) => b.spent - a.spent || a.guest.localeCompare(b.guest));
+        .sort((a, b) => {
+            const firstA = a.guest.trim().split(/\s+/).at(0) ?? "";
+            const firstB = b.guest.trim().split(/\s+/).at(0) ?? "";
+            return firstA.localeCompare(firstB) || a.guest.localeCompare(b.guest);
+        });
 
     const totalStays = rows.reduce((sum, r) => sum + r.stays, 0);
     const totalNights = rows.reduce((sum, r) => sum + r.nights, 0);
@@ -290,6 +294,7 @@ export async function getGuestReport(filters: ReportFilters, session: Session): 
             { key: "guest", label: "Guest" },
             { key: "stays", label: "Stays" },
             { key: "nights", label: "Nights" },
+            { key: "averageNights", label: "Average Nights" },
             { key: "spent", label: "Total Spent", money: true },
         ],
         rows,
@@ -313,35 +318,44 @@ export async function getStaffTaskReport(filters: ReportFilters, session: Sessio
 
     const staff = await db.orm.public.Employee
         .where({ role: "HOUSEKEEPING" })
-        .orderBy([(e) => e.fullName.asc(), (e) => e.id.asc()])
         .all();
-    const ids = staff.map((e) => e.id);
-    const tasks =
-        ids.length > 0
-            ? await db.orm.public.HousekeepingTask
-                .where((t) => t.assignedToId.in(ids))
-                .select("assignedToId", "status", "startedAt", "completedAt")
-                .all()
-            : [];
 
-    const rows = staff
-        .map((e) => {
-            const mine = tasks.filter((t) => t.assignedToId === e.id);
-            const done = mine.filter(
-                (t) => t.status === "COMPLETED" && t.completedAt && t.completedAt >= from && t.completedAt <= to
-            );
-            const minutes = done.flatMap((t) =>
-                t.startedAt && t.completedAt ? [(t.completedAt.getTime() - t.startedAt.getTime()) / 60_000] : []
-            );
-            return {
-                employeeId: e.id,
-                employee: e.fullName,
-                active: e.isActive ? "Yes" : "No",
-                completed: done.length,
-                averageMinutes: minutes.length > 0 ? Math.round(minutes.reduce((a, b) => a + b, 0) / minutes.length) : null,
-            };
-        })
-        .sort((a, b) => b.completed - a.completed || a.employee.localeCompare(b.employee));
+    const ids = staff.map((e) => e.id);
+
+    const tasks = ids.length > 0
+        ? await db.orm.public.HousekeepingTask
+            .where((t) => t.assignedToId.in(ids))
+            .select("assignedToId", "status", "startedAt", "completedAt")
+            .all()
+        : [];
+
+    const rows = staff.map((e) => {
+        const mine = tasks.filter((t) => t.assignedToId === e.id);
+        const done = mine.filter(
+            (t) => t.status === "COMPLETED" &&
+                t.completedAt &&
+                t.completedAt >= from &&
+                t.completedAt <= to
+        );
+
+        const minutes = done
+            .filter((t) => t.startedAt && t.completedAt)
+            .map((t) => (t.completedAt!.getTime() - t.startedAt!.getTime()) / 60_000);
+
+        return {
+            employeeId: e.id,
+            employee: e.fullName,
+            active: e.isActive ? "Yes" : "No",
+            completed: done.length,
+            averageMinutes: minutes.length > 0
+                ? Math.round(minutes.reduce((sum, n) => sum + n, 0) / minutes.length)
+                : null,
+        };
+    }).sort((a, b) => {
+        const firstA = a.employee.trim().split(/\s+/)[0] ?? "";
+        const firstB = b.employee.trim().split(/\s+/)[0] ?? "";
+        return firstA.localeCompare(firstB) || a.employee.localeCompare(b.employee);
+    });
 
     return {
         columns: [
