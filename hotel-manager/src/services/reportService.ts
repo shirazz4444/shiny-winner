@@ -139,19 +139,24 @@ export async function getCancellationReport(filters: ReportFilters, session: Ses
         .where({ status: "CANCELLED" })
         .where((r) => r.cancelledAt.gte(startOfDay(start)))
         .where((r) => r.cancelledAt.lte(endOfDay(end)))
-        .orderBy([(r) => r.cancelledAt.desc(), (r) => r.id.desc()])
         .include("guest")
         .include("room")
         .all();
 
-    const rows = cancelled.map((r) => ({
-        reservationId: r.id,
-        guest: r.guest.fullName,
-        room: r.room?.roomNumber ?? null,
-        checkInDate: r.checkInDate,
-        checkOutDate: r.checkOutDate,
-        cancelledAt: r.cancelledAt ? r.cancelledAt.toISOString() : null,
-    }));
+    const rows = cancelled
+        .map((r) => ({
+            reservationId: r.id,
+            guest: r.guest.fullName,
+            room: r.room?.roomNumber ?? null,
+            checkInDate: r.checkInDate,
+            checkOutDate: r.checkOutDate,
+            cancelledAt: r.cancelledAt ? r.cancelledAt.toISOString() : null,
+        }))
+        .sort((a, b) => {
+            if (!a.cancelledAt) return 1;
+            if (!b.cancelledAt) return -1;
+            return a.cancelledAt.localeCompare(b.cancelledAt);
+        });
 
     return {
         columns: [
@@ -175,10 +180,7 @@ export async function getRoomCategoryReport(filters: ReportFilters, session: Ses
     assertRole(session, "ADMIN", "MANAGER");
     const { start, end } = resolveRange(filters);
 
-    const categories = await db.orm.public.RoomCategory
-        .where({})
-        .orderBy([(c) => c.basePrice.asc(), (c) => c.id.asc()])
-        .all();
+    const categories = await db.orm.public.RoomCategory.where({}).all();
     const rooms = await db.orm.public.Room.select("id", "categoryId").all();
     const categoryOf = new Map(rooms.map((r) => [r.id, r.categoryId]));
 
@@ -186,28 +188,41 @@ export async function getRoomCategoryReport(filters: ReportFilters, session: Ses
         .where((r) => r.status.notIn(["CANCELLED", "NO_SHOW"]))
         .where((r) => r.checkInDate.gte(start))
         .where((r) => r.checkInDate.lte(end))
+        .include("invoice")
         .select("roomId", "checkInDate", "checkOutDate")
         .all();
 
-    const stats = new Map<string, { bookings: number; roomNights: number }>();
-    for (const b of bookings) {
-        const categoryId = b.roomId ? categoryOf.get(b.roomId) : undefined;
+    const stats = new Map<string, { bookings: number; roomNights: number; revenue: number }>();
+
+    for (const booking of bookings) {
+        const categoryId = booking.roomId ? categoryOf.get(booking.roomId) : undefined;
         if (!categoryId) continue;
-        const entry = stats.get(categoryId) ?? { bookings: 0, roomNights: 0 };
+
+        const entry = stats.get(categoryId) ?? {
+            bookings: 0,
+            roomNights: 0,
+            revenue: 0,
+        };
+
         entry.bookings += 1;
-        entry.roomNights += Math.max(1, calendarDays(b.checkInDate, b.checkOutDate));
+        entry.roomNights += Math.max(1, calendarDays(booking.checkInDate, booking.checkOutDate));
+        entry.revenue += booking.invoice ? netRevenue(booking.invoice) : 0;
+
         stats.set(categoryId, entry);
     }
 
     const totalBookings = [...stats.values()].reduce((sum, s) => sum + s.bookings, 0);
+
     const rows = categories
-        .map((c) => {
-            const s = stats.get(c.id) ?? { bookings: 0, roomNights: 0 };
+        .map((category) => {
+            const s = stats.get(category.id) ?? { bookings: 0, roomNights: 0, revenue: 0 };
+
             return {
-                category: c.name,
+                category: category.name,
                 bookings: s.bookings,
                 roomNights: s.roomNights,
                 sharePercent: totalBookings > 0 ? round1((s.bookings / totalBookings) * 100) : 0,
+                revenue: s.revenue,
             };
         })
         .sort((a, b) => b.bookings - a.bookings || a.category.localeCompare(b.category));
@@ -218,6 +233,7 @@ export async function getRoomCategoryReport(filters: ReportFilters, session: Ses
             { key: "bookings", label: "Bookings" },
             { key: "roomNights", label: "Room Nights" },
             { key: "sharePercent", label: "Share of Bookings (%)" },
+            { key: "revenue", label: "Revenue", money: true },
         ],
         rows,
         summary: {
