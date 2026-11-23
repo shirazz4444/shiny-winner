@@ -1,20 +1,21 @@
 import type { ReactNode } from "react";
 
 type AlertProps = {
-  variant?: "error" | "info";
+  variant?: "error" | "info" | "warning";
   children: ReactNode;
 };
 
-export default function Alert({ variant = "error", children }: AlertProps) {
-  const style =
-    variant === "error"
-      ? "bg-destructive/10 text-destructive"
-      : "bg-info/10 text-info";
+const styles = {
+  error: "bg-destructive/10 text-destructive",
+  info: "bg-info/10 text-info",
+  warning: "bg-warning/10 text-warning",
+};
 
+export default function Alert({ variant = "error", children }: AlertProps) {
   return (
     <div
       role={variant === "error" ? "alert" : "status"}
-      className={`rounded-md px-3 py-2 text-sm ${style}`}
+      className={`rounded-md px-3 py-2 text-sm ${styles[variant]}`}
     >
       {children}
     </div>
