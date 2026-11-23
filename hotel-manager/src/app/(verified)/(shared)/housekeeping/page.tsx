@@ -45,7 +45,12 @@ export default async function HousekeepingPage({
   );
   const section = input.section === "maintenance" ? "maintenance" : "tasks";
 
-  const [{ items: roomItems }, staffList] = await Promise.all([
+  const [
+    { items: roomItems },
+    staffList,
+    { total: unassignedTasks },
+    { total: openMaintenance },
+  ] = await Promise.all([
     listRooms({ page: 1, limit: 100 }, session),
     manage
       ? listEmployees(
@@ -53,6 +58,11 @@ export default async function HousekeepingPage({
           session,
         )
       : Promise.resolve({ items: [] }),
+    listTasks(
+      { unassigned: true, status: "PENDING", page: 1, limit: 1 },
+      session,
+    ),
+    listMaintenanceRequests({ status: "OPEN", page: 1, limit: 1 }, session),
   ]);
   const rooms = roomItems.map((r) => ({ id: r.id, roomNumber: r.roomNumber }));
   const staff = staffList.items.map((s) => ({
@@ -62,6 +72,35 @@ export default async function HousekeepingPage({
   }));
 
   const { section: _section, page: _page, ...filterParams } = input;
+
+  const alerts = (unassignedTasks > 0 || openMaintenance > 0) && (
+    <div className="flex flex-col gap-2">
+      {unassignedTasks > 0 && (
+        <Alert variant="warning">
+          <Link
+            href="/housekeeping?section=tasks&assignee=unassigned"
+            className="font-medium underline"
+          >
+            {unassignedTasks === 1
+              ? "There is 1 unassigned task."
+              : `There are ${unassignedTasks} unassigned tasks.`}{" "}
+          </Link>
+        </Alert>
+      )}
+      {openMaintenance > 0 && (
+        <Alert variant="warning">
+          <Link
+            href="/housekeeping?section=maintenance&status=OPEN"
+            className="font-medium underline"
+          >
+            {openMaintenance === 1
+              ? "There is 1 open maintenance report."
+              : `There are ${openMaintenance} open maintenance reports.`}{" "}
+          </Link>
+        </Alert>
+      )}
+    </div>
+  );
 
   const tabs = (
     <TabNav
@@ -143,6 +182,7 @@ export default async function HousekeepingPage({
           <h1 className="text-2xl font-semibold">Housekeeping</h1>
           <MaintenanceReportDialog rooms={rooms} />
         </div>
+        {alerts}
         {tabs}
         <Card>
           <HousekeepingFilters
@@ -189,14 +229,7 @@ export default async function HousekeepingPage({
           : {}),
   });
   const filters = parsed.success ? parsed.data : listTasksSchema.parse({});
-  const [{ items, total, page, limit }, { total: unassigned }] =
-    await Promise.all([
-      listTasks(filters, session),
-      listTasks(
-        { unassigned: true, status: "PENDING", page: 1, limit: 1 },
-        session,
-      ),
-    ]);
+  const { items, total, page, limit } = await listTasks(filters, session);
 
   type Row = (typeof items)[number];
   const columns: Column<Row>[] = [
@@ -267,19 +300,8 @@ export default async function HousekeepingPage({
           <TaskFormDialog mode="create" rooms={rooms} housekeepers={staff} />
         )}
       </div>
+      {alerts}
       {tabs}
-
-      {unassigned > 0 && (
-        <Alert variant="warning">
-          <Link
-            href="/housekeeping?section=tasks&assignee=unassigned"
-            className="font-medium underline"
-          >
-            {unassigned} open {unassigned === 1 ? "task has" : "tasks have"} no
-            one assigned!{" "}
-          </Link>
-        </Alert>
-      )}
 
       <Card>
         <HousekeepingFilters
