@@ -10,7 +10,7 @@ import MaintenanceReportDialog from "@/components/housekeeping/MaintenanceReport
 import MaintenanceUpdateDialog from "@/components/housekeeping/MaintenanceUpdateDialog";
 import TaskActions from "@/components/housekeeping/TaskActions";
 import TaskFormDialog from "@/components/housekeeping/TaskFormDialog";
-import { formatDate } from "@/lib/dates";
+import { formatDate } from "@/lib/format";
 import { listMaintenanceSchema } from "@/schemas/maintenance";
 import { listTasksSchema } from "@/schemas/housekeeping";
 import { requireRole } from "@/services/authService";

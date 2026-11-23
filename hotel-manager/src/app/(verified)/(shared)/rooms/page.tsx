@@ -8,7 +8,7 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import RoomActions from "@/components/rooms/RoomActions";
 import RoomFilters from "@/components/rooms/RoomFilters";
 import RoomFormDialog from "@/components/rooms/RoomFormDialog";
-import centsToUSD from "@/lib/centsToUSD";
+import { centsToUSD } from "@/lib/format";
 import { listRoomsSchema } from "@/schemas/room";
 import { requireRole } from "@/services/authService";
 import { listRoomCategories } from "@/services/roomCategoryService";

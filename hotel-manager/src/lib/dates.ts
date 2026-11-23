@@ -40,12 +40,3 @@ export function nextMonthStart(date: string): string {
     d.setUTCMonth(d.getUTCMonth() + 1);
     return d.toISOString().slice(0, 10);
 }
-
-export function formatDate(value: string | Date): string {
-    return new Date(value).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        timeZone: "UTC",
-    });
-}

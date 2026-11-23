@@ -11,7 +11,7 @@ import {
   type ReportSlug,
 } from "@/components/reports/reportConfig";
 import { BadRequestError } from "@/lib/apiResponse";
-import centsToUSD from "@/lib/centsToUSD";
+import { centsToUSD } from "@/lib/format";
 import type { Report, ReportRow } from "@/lib/csv";
 import { addDays, today } from "@/lib/dates";
 import {

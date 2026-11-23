@@ -5,7 +5,7 @@ import DataTable, { type Column } from "@/components/ui/DataTable";
 import Pagination from "@/components/ui/Pagination";
 import GuestFormDialog from "@/components/guests/GuestFormDialog";
 import GuestSearch from "@/components/guests/GuestSearch";
-import centsToUSD from "@/lib/centsToUSD";
+import { centsToUSD } from "@/lib/format";
 import { listGuestsSchema } from "@/schemas/guest";
 import { requireRole } from "@/services/authService";
 import { listGuests } from "@/services/guestService";

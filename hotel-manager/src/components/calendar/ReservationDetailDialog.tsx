@@ -7,8 +7,7 @@ import Button, { buttonClass } from "@/components/ui/Button";
 import Dialog from "@/components/ui/Dialog";
 import StatusBadge from "@/components/ui/StatusBadge";
 import type { ApiResponse } from "@/lib/apiResponse";
-import centsToUSD from "@/lib/centsToUSD";
-import { formatDate } from "@/lib/dates";
+import { centsToUSD, formatDate } from "@/lib/format";
 
 type Detail = {
   id: string;

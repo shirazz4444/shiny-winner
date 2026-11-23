@@ -10,7 +10,7 @@ import SelectField from "@/components/ui/fields/SelectField";
 import TextField from "@/components/ui/fields/TextField";
 import type { CategoryOption, RoomItem } from "@/components/rooms/types";
 import type { ApiResponse } from "@/lib/apiResponse";
-import centsToUSD from "@/lib/centsToUSD";
+import { centsToUSD } from "@/lib/format";
 
 type Props = {
   mode: "create" | "edit";

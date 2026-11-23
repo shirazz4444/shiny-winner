@@ -1,5 +1,5 @@
 import KpiCard from "@/components/ui/KpiCard";
-import centsToUSD from "@/lib/centsToUSD";
+import { centsToUSD } from "@/lib/format";
 import type { SummaryField } from "@/components/reports/reportConfig";
 
 type ReportSummaryProps = {

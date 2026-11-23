@@ -10,7 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import BaseChart from "@/components/dashboard/charts/BaseChart";
-import { centsToUSDWhole } from "@/lib/centsToUSD";
+import { centsToUSDWhole } from "@/lib/format";
 
 type Point = {
   month: string;

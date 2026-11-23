@@ -15,7 +15,7 @@ import BookingsChart from "@/components/dashboard/charts/BookingsChart";
 import OccupancyChart from "@/components/dashboard/charts/OccupancyChart";
 import RevenueChart from "@/components/dashboard/charts/RevenueChart";
 import RoomTypeChart from "@/components/dashboard/charts/RoomTypeChart";
-import centsToUSD from "@/lib/centsToUSD";
+import { centsToUSD } from "@/lib/format";
 import { dashboardChartsSchema } from "@/schemas/dashboard";
 import { requireRole } from "@/services/authService";
 import {

@@ -7,8 +7,7 @@ import KpiCard from "@/components/ui/KpiCard";
 import StatusBadge from "@/components/ui/StatusBadge";
 import GuestFormDialog from "@/components/guests/GuestFormDialog";
 import { NotFoundError } from "@/lib/apiResponse";
-import centsToUSD from "@/lib/centsToUSD";
-import { formatDate } from "@/lib/dates";
+import { centsToUSD, formatDate } from "@/lib/format";
 import { requireRole } from "@/services/authService";
 import { getGuest } from "@/services/guestService";
 
