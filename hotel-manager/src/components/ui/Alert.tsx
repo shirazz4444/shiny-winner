@@ -15,7 +15,7 @@ export default function Alert({ variant = "error", children }: AlertProps) {
   return (
     <div
       role={variant === "error" ? "alert" : "status"}
-      className={`rounded-md px-3 py-2 text-sm ${styles[variant]}`}
+      className={`rounded-md px-3 py-2 text-sm text-wrap ${styles[variant]}`}
     >
       {children}
     </div>
