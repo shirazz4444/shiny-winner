@@ -47,7 +47,7 @@ export default function RoomFilters({
           label="Category"
           defaultValue={categoryId}
         >
-          <option value="">All categories</option>
+          <option value="">All Categories</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -63,7 +63,7 @@ export default function RoomFilters({
         label="Status"
         defaultValue={status}
       >
-        <option value="">All statuses</option>
+        <option value="">All Statuses</option>
         {STATUSES.map((s) => (
           <option key={s} value={s}>
             {statusLabel(s)}

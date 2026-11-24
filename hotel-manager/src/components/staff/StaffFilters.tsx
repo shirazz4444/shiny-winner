@@ -31,7 +31,7 @@ export default function StaffFilters({
       />
 
       <SelectField id="role" name="role" label="Role" defaultValue={role}>
-        <option value="">All roles</option>
+        <option value="">All Roles</option>
         {ROLES.map((r) => (
           <option key={r} value={r}>
             {ROLE_LABELS[r]}
