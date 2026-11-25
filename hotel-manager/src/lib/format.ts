@@ -31,6 +31,14 @@ export function formatDate(value: string | Date): string {
     });
 }
 
+export function formatDateTime(value: string | Date): string {
+    return `${new Date(value).toLocaleString("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: "UTC",
+    })} UTC`;
+}
+
 export const PAYMENT_METHODS: Record<string, string> = {
     CASH: "Cash",
     CARD: "Card",

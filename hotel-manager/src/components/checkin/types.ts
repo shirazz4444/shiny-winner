@@ -25,6 +25,7 @@ export type AvailableRoom = {
   price: number;
   maxOccupancy: number;
   status: string;
+  estimatedTotal: number;
 };
 
 export type InvoiceDetail = {
