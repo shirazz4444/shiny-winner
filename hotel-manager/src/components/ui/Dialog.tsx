@@ -27,7 +27,7 @@ export default function Dialog({ open, onClose, title, children }: Props) {
       ref={ref}
       aria-labelledby={titleId}
       onClose={onClose} // also fires when Escape is pressed
-      className="m-auto max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg border border-border bg-card p-6 backdrop:bg-black/40"
+      className="m-auto max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-border bg-card p-6 backdrop:bg-black/40"
     >
       <div className="mb-4 flex items-start justify-between gap-4">
         <h2 id={titleId} className="text-lg font-semibold">
