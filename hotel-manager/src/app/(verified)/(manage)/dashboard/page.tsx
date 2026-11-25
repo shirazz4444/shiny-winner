@@ -58,6 +58,16 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
           icon={ListTodo}
         />
         <KpiCard
+          label="Today's Check-ins"
+          value={kpis.todaysCheckIns}
+          icon={LogIn}
+        />
+        <KpiCard
+          label="Today's Check-outs"
+          value={kpis.todaysCheckOuts}
+          icon={LogOut}
+        />
+        <KpiCard
           label="Available Rooms"
           value={kpis.availableRooms}
           icon={DoorOpen}
@@ -68,16 +78,6 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
           icon={BedDouble}
         />
         <KpiCard label="Total Rooms" value={kpis.totalRooms} icon={Hotel} />
-        <KpiCard
-          label="Today's Check-ins"
-          value={kpis.todaysCheckIns}
-          icon={LogIn}
-        />
-        <KpiCard
-          label="Today's Check-outs"
-          value={kpis.todaysCheckOuts}
-          icon={LogOut}
-        />
         <KpiCard
           label="Total Revenue"
           value={centsToUSD(kpis.totalRevenue)}
